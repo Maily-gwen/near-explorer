@@ -1,4 +1,3 @@
-import { TransactionHash, UTCTimestamp } from "./client-types";
 import {
   Action,
   TransactionBaseInfo,
@@ -12,7 +11,6 @@ import {
   queryTransactionsListInBlock,
   queryTransactionInfo,
   QueryTransaction,
-  queryTransactionsByHashes,
 } from "./db-utils";
 
 const INDEXER_COMPATIBILITY_TRANSACTION_ACTION_KINDS = new Map<
@@ -44,7 +42,7 @@ async function createTransactionsList(
     signerId: transaction.signer_id,
     receiverId: transaction.receiver_id,
     blockHash: transaction.block_hash,
-    blockTimestamp: parseInt(transaction.block_timestamp) as UTCTimestamp,
+    blockTimestamp: parseInt(transaction.block_timestamp),
     transactionIndex: transaction.transaction_index,
     actions: transactionsActionsList.get(transaction.hash) || [],
   }));
@@ -78,20 +76,6 @@ async function getTransactionsList(
     return [];
   }
   return await createTransactionsList(transactionsList);
-}
-
-async function getTransactionsByHashes(
-  hashes: TransactionHash[]
-): Promise<Map<TransactionHash, TransactionBaseInfo>> {
-  const rawTransactions = await queryTransactionsByHashes(hashes);
-  if (rawTransactions.length === 0) {
-    return new Map();
-  }
-  const transactions = await createTransactionsList(rawTransactions);
-  return transactions.reduce((acc, transaction) => {
-    acc.set(transaction.hash, transaction);
-    return acc;
-  }, new Map());
 }
 
 async function getAccountTransactionsList(
@@ -141,10 +125,10 @@ async function getTransactionInfo(
   return transaction[0] || null;
 }
 
-export const convertDbArgsToRpcArgs = (
+function convertDbArgsToRpcArgs(
   kind: string,
   jsonArgs: Record<string, unknown>
-): Action["args"] => {
+): Action["args"] {
   switch (kind) {
     case "FUNCTION_CALL":
       return {
@@ -182,7 +166,7 @@ export const convertDbArgsToRpcArgs = (
     default:
       return jsonArgs;
   }
-};
+}
 
 async function getTransactionsActionsList(
   transactionsHashes: string[]
@@ -215,5 +199,4 @@ export {
   getAccountTransactionsList,
   getTransactionsListInBlock,
   getTransactionInfo,
-  getTransactionsByHashes,
 };
