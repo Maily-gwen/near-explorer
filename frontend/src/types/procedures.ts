@@ -201,6 +201,10 @@ export type ProcedureTypes = {
     args: [AccountId];
     result: Account | null;
   };
+  transaction: {
+    args: [TransactionId];
+    result: any | null;
+  };
   "account-info": {
     args: [string];
     result: AccountOld | null;

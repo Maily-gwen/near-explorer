@@ -34,6 +34,7 @@ const stitches = createStitches({
       textColor: "#ffffff",
       backgroundTextColor: "#c9c9c9",
       divider: "rgba(255, 255, 255, 0.1)",
+      success: "#10AA7F",
     },
     fontSizes: {
       "font-xs": "10px",
