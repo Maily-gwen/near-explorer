@@ -202,7 +202,7 @@ export type ProcedureTypes = {
     result: Account | null;
   };
   transaction: {
-    args: [TransactionId];
+    args: [TransactionHash];
     result: any | null;
   };
   "account-info": {
