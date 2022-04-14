@@ -3,6 +3,7 @@ import {
   queryBlocksList,
   queryBlockInfo,
   queryBlockByHashOrId,
+  queryBlockHeightByHash,
 } from "./db-utils";
 
 async function getBlocksList(
@@ -48,4 +49,17 @@ async function getBlockByHashOrId(
   return block.block_hash;
 }
 
-export { getBlocksList, getBlockInfo, getBlockByHashOrId };
+async function getBlockHeightByHash(blockHash: string): Promise<number | null> {
+  const block = await queryBlockHeightByHash(blockHash);
+  if (!block) {
+    return null;
+  }
+  return block.block_height;
+}
+
+export {
+  getBlocksList,
+  getBlockInfo,
+  getBlockByHashOrId,
+  getBlockHeightByHash,
+};

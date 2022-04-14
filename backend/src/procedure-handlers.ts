@@ -210,13 +210,6 @@ export const procedureHandlers: {
       transactionBaseInfo.hash,
       transactionBaseInfo.signerId,
     ]);
-    console.log(
-      "==== transactionBaseInfo: ======",
-      transactionBaseInfo,
-      "====== transactionInfo: =======",
-      transactionInfo
-    );
-
     return {
       hash: transactionBaseInfo.hash,
       created: {
@@ -438,6 +431,9 @@ export const procedureHandlers: {
   },
   "block-by-hash-or-id": async ([blockId]) => {
     return await blocks.getBlockByHashOrId(blockId);
+  },
+  "block-height-by-hash": async ([blockHash]) => {
+    return await blocks.getBlockHeightByHash(blockHash);
   },
 
   // contracts
