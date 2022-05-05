@@ -42,7 +42,7 @@ const Divider = styled("div", {
 const AmountHeader = styled("div", {
   fontSize: "$font-s",
   color: "#616161",
-  width: 167,
+  width: 125,
 });
 
 const Amount = styled("div", {
@@ -52,6 +52,11 @@ const Amount = styled("div", {
   color: "#000000",
 });
 
+const Author = styled("div", {
+  display: "flex",
+  alignItems: "center",
+});
+
 const AccountLinkWrapper = styled("div", {
   color: "#0072ce",
   fontSize: 20,
@@ -59,8 +64,28 @@ const AccountLinkWrapper = styled("div", {
   lineHeight: "150%",
 });
 
+const Avatar = styled("div", {
+  size: "$avatarSizeSmall",
+  backgroundColor: "$avatarFallback",
+  opacity: 0.2,
+  borderRadius: "$round",
+  marginRight: "$space-s",
+});
+
 const SuccessIcon = styled("img", {
   width: 11,
+});
+
+const Status = styled("div", {
+  textAlign: "center",
+
+  "& > div": {
+    width: "auto",
+  },
+});
+
+const Red = styled("div", {
+  color: "#aa4710",
 });
 
 const Receipt: React.FC<Props> = React.memo(({ onClick, receipt }) => {
@@ -74,9 +99,12 @@ const Receipt: React.FC<Props> = React.memo(({ onClick, receipt }) => {
         <div>
           <AmountHeader>{t("pages.transaction.activity.from")}</AmountHeader>
           <Amount>
-            <AccountLinkWrapper>
-              <AccountLink accountId={receipt.signerId} />
-            </AccountLinkWrapper>
+            <Author>
+              <Avatar />
+              <AccountLinkWrapper>
+                <AccountLink accountId={receipt.signerId} />
+              </AccountLinkWrapper>
+            </Author>
           </Amount>
         </div>
         <Divider />
@@ -85,9 +113,12 @@ const Receipt: React.FC<Props> = React.memo(({ onClick, receipt }) => {
         <div>
           <AmountHeader>{t("pages.transaction.activity.to")}</AmountHeader>
           <Amount>
-            <AccountLinkWrapper>
-              <AccountLink accountId={receipt.receiverId} />
-            </AccountLinkWrapper>
+            <Author>
+              <Avatar />
+              <AccountLinkWrapper>
+                <AccountLink accountId={receipt.receiverId} />
+              </AccountLinkWrapper>
+            </Author>
           </Amount>
         </div>
         <Divider />
@@ -101,7 +132,7 @@ const Receipt: React.FC<Props> = React.memo(({ onClick, receipt }) => {
           <Amount>{formatNear(receipt.tokensBurnt)}</Amount>
         </div>
         <Divider />
-        <div>
+        <Status>
           <AmountHeader>{t("pages.transaction.activity.status")}</AmountHeader>
           <Amount>
             {["Started", "SuccessValue", "SuccessReceiptId"].indexOf(status) >=
@@ -110,10 +141,10 @@ const Receipt: React.FC<Props> = React.memo(({ onClick, receipt }) => {
                 <SuccessIcon src="/static/images/icon-success.svg" />
               </>
             ) : (
-              "failed"
+              <Red>&#10005;</Red>
             )}
           </Amount>
-        </div>
+        </Status>
       </AccountInfo>
     </Row>
   );

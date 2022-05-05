@@ -47,11 +47,14 @@ const stitches = createStitches({
       "space-s": "8px",
       "space-m": "16px",
       "space-l": "40px",
+      "padding-l": "24px",
       "padding-m": "8px",
       "padding-s": "4px",
     },
     sizes: {
       avatarSize: "60px",
+      avatarSizeSmall: "17px",
+      desktop: "1161px",
     },
     radii: {
       round: "50%",
