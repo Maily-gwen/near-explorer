@@ -1,3 +1,4 @@
+import { TransactionHash, UTCTimestamp } from "../../../types/nominal";
 import { renderElement } from "../../../testing/utils";
 
 import AccountDetails from "../AccountDetails";
@@ -11,8 +12,10 @@ describe("<AccountDetails />", () => {
         <AccountDetails
           account={{
             accountId: "megan.near",
-            createdAtBlockTimestamp: Number(new Date(2019, 1, 1)),
-            createdByTransactionHash: "Genesis",
+            createdAtBlockTimestamp: Number(
+              new Date(2019, 1, 1)
+            ) as UTCTimestamp,
+            createdByTransactionHash: "Genesis" as TransactionHash,
             stakedBalance: "0",
             nonStakedBalance: "654345665432345678765",
             storageUsage: "876",
@@ -64,9 +67,10 @@ describe("<AccountDetails />", () => {
         <AccountDetails
           account={{
             accountId: "megan.near",
-            createdAtBlockTimestamp: Number(new Date(2019, 1, 1)),
-            createdByTransactionHash:
-              "EVvWW1S9BFaEjY1JBNSdstb7ZTtTFjQ6cygkbw1KY4tL",
+            createdAtBlockTimestamp: Number(
+              new Date(2019, 1, 1)
+            ) as UTCTimestamp,
+            createdByTransactionHash: "EVvWW1S9BFaEjY1JBNSdstb7ZTtTFjQ6cygkbw1KY4tL" as TransactionHash,
             stakedBalance: "0",
             nonStakedBalance: "654345665432345678765",
             storageUsage: "876",
@@ -83,9 +87,10 @@ describe("<AccountDetails />", () => {
         <AccountDetails
           account={{
             accountId: "near.near",
-            createdAtBlockTimestamp: Number(new Date(2019, 1, 1)),
-            createdByTransactionHash:
-              "EVvWW1S9BFlkjkmnjmkb7ZTtTFjQ6cygkbw1KY4tL",
+            createdAtBlockTimestamp: Number(
+              new Date(2019, 1, 1)
+            ) as UTCTimestamp,
+            createdByTransactionHash: "EVvWW1S9BFlkjkmnjmkb7ZTtTFjQ6cygkbw1KY4tL" as TransactionHash,
             stakedBalance: "0",
             nonStakedBalance: "6987876845678765",
             storageUsage: "1876",

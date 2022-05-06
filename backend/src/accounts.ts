@@ -1,5 +1,11 @@
 import BN from "bn.js";
 import { sha256 } from "js-sha256";
+import {
+  Bytes,
+  TransactionHash,
+  UTCTimestamp,
+  YoctoNEAR,
+} from "./client-types";
 
 import { AccountListInfo, AccountTransactionsCount } from "./client-types";
 import { nearLockupAccountIdSuffix } from "./config";
@@ -50,15 +56,14 @@ async function getAccountInfo(accountId: string) {
   }
   return {
     accountId: accountInfo.account_id,
-    createdByTransactionHash:
-      accountInfo.created_by_transaction_hash || undefined,
-    createdAtBlockTimestamp: accountInfo.created_at_block_timestamp
-      ? parseInt(accountInfo.created_at_block_timestamp)
-      : undefined,
+    createdByTransactionHash: accountInfo.created_by_transaction_hash as TransactionHash,
+    createdAtBlockTimestamp: parseInt(
+      accountInfo.created_at_block_timestamp
+    ) as UTCTimestamp,
     deletedByTransactionHash:
-      accountInfo.deleted_by_transaction_hash || undefined,
+      (accountInfo.deleted_by_transaction_hash as TransactionHash) || undefined,
     deletedAtBlockTimestamp: accountInfo.deleted_at_block_timestamp
-      ? parseInt(accountInfo.deleted_at_block_timestamp)
+      ? (parseInt(accountInfo.deleted_at_block_timestamp) as UTCTimestamp)
       : undefined,
   };
 }
@@ -193,12 +198,12 @@ const getAccountDetails = async (accountId: string) => {
   }
 
   return {
-    storageUsage: storageUsage.toString(),
-    stakedBalance: stakedBalance.toString(),
-    nonStakedBalance: nonStakedBalance.toString(),
+    storageUsage: storageUsage.toString() as Bytes,
+    stakedBalance: stakedBalance.toString() as YoctoNEAR,
+    nonStakedBalance: nonStakedBalance.toString() as YoctoNEAR,
     minimumBalance: minimumBalance.toString(),
     availableBalance: availableBalance.toString(),
-    totalBalance: totalBalance.toString(),
+    totalBalance: totalBalance.toString() as YoctoNEAR,
     lockupAccountId: lockupDetails?.accountId,
     lockupTotalBalance: lockupDetails?.totalBalance,
     lockupLockedBalance: lockupDetails?.lockedBalance,

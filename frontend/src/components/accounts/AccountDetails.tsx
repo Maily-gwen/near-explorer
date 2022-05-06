@@ -15,7 +15,7 @@ import StorageSize from "../utils/StorageSize";
 import { Trans, useTranslation } from "react-i18next";
 import { useNetworkContext } from "../../hooks/use-network-context";
 import { useFetch } from "../../hooks/use-fetch";
-import { Account } from "../../types/procedures";
+import { AccountOld } from "../../types/procedures";
 import { styled } from "../../libraries/styles";
 
 const AccountInfoContainer = styled("div", {
@@ -40,7 +40,7 @@ const ColoredCell = styled(CardCell, {
 });
 
 export interface Props {
-  account: Partial<Omit<Account, "accountId">> & {
+  account: Partial<Omit<AccountOld, "accountId">> & {
     accountId: string;
   };
 }

@@ -3,6 +3,7 @@ import NextApp, { AppContext, ExtraAppInitialProps } from "next/app";
 import Head from "next/head";
 import { NextRouter, useRouter } from "next/router";
 import * as React from "react";
+import * as ReactQuery from "react-query";
 import { exec } from "child_process";
 import { promisify } from "util";
 
@@ -102,14 +103,20 @@ const wrapRouterHandlerMaintainNetwork = (
 };
 
 type ContextProps = {
+  queryClient: ReactQuery.QueryClient;
+  dehydratedState: unknown;
   networkState: NetworkContext;
 };
 
 const AppContextWrapper: React.FC<ContextProps> = React.memo((props) => {
   return (
-    <NetworkContext.Provider value={props.networkState}>
-      {props.children}
-    </NetworkContext.Provider>
+    <ReactQuery.QueryClientProvider client={props.queryClient}>
+      <ReactQuery.Hydrate state={props.dehydratedState}>
+        <NetworkContext.Provider value={props.networkState}>
+          {props.children}
+        </NetworkContext.Provider>
+      </ReactQuery.Hydrate>
+    </ReactQuery.QueryClientProvider>
   );
 });
 
@@ -118,12 +125,22 @@ let extraAppInitialPropsCache: ExtraAppInitialProps;
 const App: AppType = React.memo(
   ({ Component, currentNearNetwork, language, pageProps, deployInfo }) => {
     extraAppInitialPropsCache = { language, deployInfo, currentNearNetwork };
+    const [queryClient] = React.useState(
+      () =>
+        new ReactQuery.QueryClient({
+          defaultOptions: {
+            queries: {
+              refetchOnWindowFocus: false,
+              retry: false,
+            },
+          },
+        })
+    );
     const router = useRouter();
     React.useEffect(() => {
       router.replace = wrapRouterHandlerMaintainNetwork(router, router.replace);
       router.push = wrapRouterHandlerMaintainNetwork(router, router.push);
     }, [router]);
-
     if (typeof window !== "undefined" && language) {
       setMomentLanguage(language);
       // There is no react way of waiting till i18n is initialized before render
@@ -154,7 +171,11 @@ const App: AppType = React.memo(
             content="initial-scale=1.0, width=device-width"
           />
         </Head>
-        <AppContextWrapper networkState={networkState}>
+        <AppContextWrapper
+          queryClient={queryClient}
+          dehydratedState={pageProps.dehydratedState}
+          networkState={networkState}
+        >
           <AppWrapper>
             <Header />
             <BackgroundImage src="/static/images/explorer-bg.svg" />

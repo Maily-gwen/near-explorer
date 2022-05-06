@@ -14,7 +14,7 @@ import { GetServerSideProps, NextPage } from "next";
 import { useAnalyticsTrackOnMount } from "../../hooks/analytics/use-analytics-track-on-mount";
 import { getFetcher } from "../../libraries/transport";
 import { getNearNetwork } from "../../libraries/config";
-import { Account } from "../../types/procedures";
+import { AccountOld } from "../../types/procedures";
 import { styled } from "../../libraries/styles";
 import * as React from "react";
 
@@ -24,7 +24,7 @@ const TransactionIcon = styled(TransactionIconSvg, {
 
 interface Props {
   accountId: string;
-  account?: Account;
+  account?: AccountOld;
   accountFetchingError?: unknown;
   accountError?: unknown;
 }
