@@ -5,6 +5,14 @@ import { nearStakingPoolAccountSuffix } from "./config";
 import { databases, withPool } from "./db";
 import { TransactionPagination, ValidatorTelemetry } from "./client-types";
 import { trimError } from "./utils";
+import {
+  AccountId,
+  BlockHash,
+  ReceiptId,
+  TransactionHash,
+  UTCTimestamp,
+  YoctoNEAR,
+} from "./client-types";
 
 const ONE_DAY_TIMESTAMP_MILISEC = 24 * HOUR;
 
@@ -395,10 +403,10 @@ const queryDepositAmountAggregatedByDate = async (): Promise<
 };
 
 export type QueryTransaction = {
-  hash: string;
-  signer_id: string;
-  receiver_id: string;
-  block_hash: string;
+  hash: TransactionHash;
+  signer_id: AccountId;
+  receiver_id: AccountId;
+  block_hash: BlockHash;
   block_timestamp: string;
   transaction_index: number;
 };
@@ -440,6 +448,33 @@ const queryTransactionsList = async (
             : undefined,
         transaction_index: paginationIndexer?.transactionIndex,
         limit,
+      },
+    ],
+    { dataSource: DataSource.Indexer }
+  );
+};
+
+const queryTransactionsByHashes = async (
+  hashes: TransactionHash[]
+): Promise<QueryTransaction[]> => {
+  return await queryRows<
+    QueryTransaction,
+    {
+      hashes: TransactionHash[];
+    }
+  >(
+    [
+      `SELECT
+        transaction_hash as hash,
+        signer_account_id as signer_id,
+        receiver_account_id as receiver_id,
+        included_in_block_hash as block_hash,
+        DIV(block_timestamp, 1000*1000) as block_timestamp,
+        index_in_chunk as transaction_index
+       FROM transactions
+       WHERE transaction_hash = ANY(:hashes)`,
+      {
+        hashes,
       },
     ],
     { dataSource: DataSource.Indexer }
@@ -960,6 +995,74 @@ const queryAccountInfo = async (
   );
 };
 
+export type QueryAccountChange = {
+  id: string;
+  affectedAccountId: AccountId;
+  changedInBlockTimestamp: string;
+  changedInBlockHash: BlockHash;
+  affectedAccountNonstakedBalance: YoctoNEAR;
+  affectedAccountStakedBalance: YoctoNEAR;
+  affectedAccountStorageUsage: YoctoNEAR;
+  indexInBlock: number;
+} & (
+  | {
+      updateReason: "TRANSACTION_PROCESSING";
+      causedByTransactionHash: TransactionHash;
+      causedByReceiptId: null;
+    }
+  | {
+      updateReason: "ACTION_RECEIPT_GAS_REWARD" | "RECEIPT_PROCESSING";
+      causedByTransactionHash: null;
+      causedByReceiptId: ReceiptId;
+    }
+  | {
+      updateReason: "VALIDATOR_ACCOUNTS_UPDATE" | "MIGRATION";
+      causedByTransactionHash: null;
+      causedByReceiptId: null;
+    }
+);
+
+const queryAccountChanges = async (
+  accountId: AccountId,
+  limit: number,
+  endTimestamp?: UTCTimestamp
+): Promise<QueryAccountChange[]> => {
+  const whereClauses = ["affected_account_id = :accountId"];
+  if (endTimestamp) {
+    whereClauses.push(
+      "changed_in_block_timestamp < CAST(:endTimestamp AS bigint) * 1000 * 1000"
+    );
+  }
+  return await queryRows<
+    QueryAccountChange,
+    { accountId: AccountId; limit: number; endTimestamp?: string }
+  >(
+    [
+      `SELECT
+        affected_account_id as "affectedAccountId",
+        DIV(changed_in_block_timestamp, 1000 * 1000) as "changedInBlockTimestamp",
+        changed_in_block_hash as "changedInBlockHash",
+        affected_account_nonstaked_balance as "affectedAccountNonstakedBalance",
+        affected_account_staked_balance as "affectedAccountStakedBalance",
+        affected_account_storage_usage as "affectedAccountStorageUsage",
+        index_in_block as "indexInBlock",
+        update_reason as "updateReason",
+        caused_by_transaction_hash as "causedByTransactionHash",
+        caused_by_receipt_id as "causedByReceiptId"
+       FROM account_changes
+       WHERE ${whereClauses.join(" AND ")}
+       ORDER BY changed_in_block_timestamp DESC -- add index in block
+       LIMIT :limit`,
+      {
+        accountId,
+        limit,
+        endTimestamp: endTimestamp ? endTimestamp.toString() : undefined,
+      },
+    ],
+    { dataSource: DataSource.Indexer }
+  );
+};
+
 // contracts
 const queryNewContractsCountAggregatedByDate = async (): Promise<
   { date: Date; new_contracts_count_by_date: number }[]
@@ -1363,10 +1466,10 @@ const queryIndexedTransaction = async (
 };
 
 export type QueryReceipt = {
-  receipt_id: string;
-  originated_from_transaction_hash: string;
-  predecessor_id: string;
-  receiver_id: string;
+  receipt_id: ReceiptId;
+  originated_from_transaction_hash: TransactionHash;
+  predecessor_id: AccountId;
+  receiver_id: AccountId;
   status: string;
   gas_burnt: string;
   tokens_burnt: string;
@@ -1389,7 +1492,7 @@ const queryIncludedReceiptsList = async (
         execution_outcomes.status,
         execution_outcomes.gas_burnt,
         execution_outcomes.tokens_burnt,
-        execution_outcomes.executed_in_block_timestamp,
+        DIV(execution_outcomes.executed_in_block_timestamp, 1000*1000) AS executed_in_block_timestamp,
         action_receipt_actions.action_kind AS kind,
         action_receipt_actions.args
        FROM action_receipt_actions
@@ -1418,7 +1521,7 @@ const queryExecutedReceiptsList = async (
         execution_outcomes.status,
         execution_outcomes.gas_burnt,
         execution_outcomes.tokens_burnt,
-        execution_outcomes.executed_in_block_timestamp,
+        DIV(execution_outcomes.executed_in_block_timestamp, 1000*1000) AS executed_in_block_timestamp,
         action_receipt_actions.action_kind AS kind,
         action_receipt_actions.args
        FROM action_receipt_actions
@@ -1428,6 +1531,34 @@ const queryExecutedReceiptsList = async (
        AND receipts.receipt_kind = 'ACTION'
        ORDER BY execution_outcomes.shard_id, execution_outcomes.index_in_chunk, action_receipt_actions.index_in_action_receipt`,
       { block_hash: blockHash },
+    ],
+    { dataSource: DataSource.Indexer }
+  );
+};
+
+const queryReceiptsByIds = async (
+  ids: ReceiptId[]
+): Promise<QueryReceipt[]> => {
+  return await queryRows<QueryReceipt, { ids: ReceiptId[] }>(
+    [
+      `SELECT
+        receipts.receipt_id,
+        receipts.originated_from_transaction_hash,
+        receipts.predecessor_account_id AS predecessor_id,
+        receipts.receiver_account_id AS receiver_id,
+        execution_outcomes.status,
+        execution_outcomes.gas_burnt,
+        execution_outcomes.tokens_burnt,
+        DIV(execution_outcomes.executed_in_block_timestamp, 1000*1000) AS executed_in_block_timestamp,
+        action_receipt_actions.action_kind AS kind,
+        action_receipt_actions.args
+       FROM action_receipt_actions
+       LEFT JOIN receipts ON receipts.receipt_id = action_receipt_actions.receipt_id
+       LEFT JOIN execution_outcomes ON execution_outcomes.receipt_id = action_receipt_actions.receipt_id
+       WHERE receipts.receipt_id = ANY(:ids)
+       AND receipts.receipt_kind = 'ACTION'
+       ORDER BY receipts.included_in_chunk_hash, receipts.index_in_chunk, action_receipt_actions.index_in_action_receipt`,
+      { ids },
     ],
     { dataSource: DataSource.Indexer }
   );
@@ -1588,6 +1719,7 @@ export {
   queryAccountTransactionsList,
   queryTransactionsListInBlock,
   queryTransactionInfo,
+  queryTransactionsByHashes,
 };
 
 // accounts
@@ -1602,6 +1734,7 @@ export {
   queryAccountInfo,
   queryAccountOutcomeTransactionsCount,
   queryAccountIncomeTransactionsCount,
+  queryAccountChanges,
 };
 
 // blocks
@@ -1639,6 +1772,7 @@ export {
   queryReceiptInTransaction,
   queryIncludedReceiptsList,
   queryExecutedReceiptsList,
+  queryReceiptsByIds,
 };
 
 // chunks

@@ -1,3 +1,4 @@
+import { TransactionHash, UTCTimestamp } from "./client-types";
 import {
   Action,
   TransactionBaseInfo,
@@ -11,6 +12,7 @@ import {
   queryTransactionsListInBlock,
   queryTransactionInfo,
   QueryTransaction,
+  queryTransactionsByHashes,
 } from "./db-utils";
 
 const INDEXER_COMPATIBILITY_TRANSACTION_ACTION_KINDS = new Map<
@@ -42,7 +44,7 @@ async function createTransactionsList(
     signerId: transaction.signer_id,
     receiverId: transaction.receiver_id,
     blockHash: transaction.block_hash,
-    blockTimestamp: parseInt(transaction.block_timestamp),
+    blockTimestamp: parseInt(transaction.block_timestamp) as UTCTimestamp,
     transactionIndex: transaction.transaction_index,
     actions: transactionsActionsList.get(transaction.hash) || [],
   }));
@@ -76,6 +78,20 @@ async function getTransactionsList(
     return [];
   }
   return await createTransactionsList(transactionsList);
+}
+
+async function getTransactionsByHashes(
+  hashes: TransactionHash[]
+): Promise<Map<TransactionHash, TransactionBaseInfo>> {
+  const rawTransactions = await queryTransactionsByHashes(hashes);
+  if (rawTransactions.length === 0) {
+    return new Map();
+  }
+  const transactions = await createTransactionsList(rawTransactions);
+  return transactions.reduce((acc, transaction) => {
+    acc.set(transaction.hash, transaction);
+    return acc;
+  }, new Map());
 }
 
 async function getAccountTransactionsList(
@@ -199,4 +215,5 @@ export {
   getAccountTransactionsList,
   getTransactionsListInBlock,
   getTransactionInfo,
+  getTransactionsByHashes,
 };

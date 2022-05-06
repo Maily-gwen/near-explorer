@@ -1,5 +1,11 @@
-import { Account } from "./account";
-import { AccountId, TransactionHash, UTCTimestamp } from "./nominal";
+import { Account, AccountActivity } from "./account";
+import {
+  AccountId,
+  BlockHash,
+  ReceiptId,
+  TransactionHash,
+  UTCTimestamp,
+} from "./nominal";
 import * as RPC from "./rpc";
 import { KeysOfUnion } from "./util";
 
@@ -63,13 +69,13 @@ export type ReceiptExecutionStatus =
 
 export type Receipt = {
   actions: Action[];
-  blockTimestamp: number;
-  receiptId: string;
+  blockTimestamp: UTCTimestamp;
+  receiptId: ReceiptId;
   gasBurnt: string;
-  receiverId: string;
-  signerId: string;
+  receiverId: AccountId;
+  signerId: AccountId;
   status?: ReceiptExecutionStatus;
-  originatedFromTransactionHash?: string | null;
+  originatedFromTransactionHash: TransactionHash;
   tokensBurnt: string;
 };
 
@@ -145,11 +151,11 @@ export type ActionMapping = {
 };
 
 export type TransactionBaseInfo = {
-  hash: string;
-  signerId: string;
-  receiverId: string;
-  blockHash: string;
-  blockTimestamp: number;
+  hash: TransactionHash;
+  signerId: AccountId;
+  receiverId: AccountId;
+  blockHash: BlockHash;
+  blockTimestamp: UTCTimestamp;
   transactionIndex: number;
   actions: Action[];
 };
@@ -200,6 +206,10 @@ export type ProcedureTypes = {
   "account-info": {
     args: [string];
     result: AccountOld | null;
+  };
+  "account-activity": {
+    args: [AccountId, number, UTCTimestamp | null];
+    result: AccountActivity;
   };
   "account-transactions-count": {
     args: [string];

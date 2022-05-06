@@ -4,6 +4,7 @@ import {
   queryIncludedReceiptsList,
   queryExecutedReceiptsList,
   QueryReceipt,
+  queryReceiptsByIds,
 } from "./db-utils";
 
 import BN from "bn.js";
@@ -18,6 +19,7 @@ import {
   ReceiptExecutionStatus,
   TransactionHashByReceiptId,
 } from "./client-types";
+import { ReceiptId, UTCTimestamp } from "./client-types";
 
 const INDEXER_COMPATIBILITY_RECEIPT_ACTION_KINDS = new Map<
   string | null,
@@ -49,9 +51,9 @@ function groupReceiptActionsIntoReceipts(
       actions = [];
       receipts.push({
         actions,
-        blockTimestamp: new BN(receiptAction.executed_in_block_timestamp)
-          .divn(10 ** 6)
-          .toNumber(),
+        blockTimestamp: parseInt(
+          receiptAction.executed_in_block_timestamp
+        ) as UTCTimestamp,
         gasBurnt: receiptAction.gas_burnt,
         receiptId: receiptAction.receipt_id,
         receiverId: receiptAction.receiver_id,
@@ -86,6 +88,17 @@ async function getExecutedReceiptsList(blockHash: string): Promise<Receipt[]> {
   return groupReceiptActionsIntoReceipts(receiptActions);
 }
 
+async function getReceiptsByIds(
+  ids: ReceiptId[]
+): Promise<Map<ReceiptId, Receipt>> {
+  const receiptActions = await queryReceiptsByIds(ids);
+  const receipts = groupReceiptActionsIntoReceipts(receiptActions);
+  return receipts.reduce<Map<ReceiptId, Receipt>>((acc, receipt) => {
+    acc.set(receipt.receiptId, receipt);
+    return acc;
+  }, new Map());
+}
+
 async function getReceiptsCountInBlock(
   blockHash: string
 ): Promise<number | null> {
@@ -116,4 +129,5 @@ export {
   getIndexerCompatibilityReceiptActionKinds,
   getIncludedReceiptsList,
   getExecutedReceiptsList,
+  getReceiptsByIds,
 };

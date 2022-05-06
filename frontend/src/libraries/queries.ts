@@ -12,6 +12,18 @@ export type QueryConfiguration<I, O, E> = {
   onError: (error: unknown) => Promise<QueryResult<O, E>>;
 };
 
+export type InfiniteQueryConfiguration<I, P, O, E> = {
+  getKey: (input: I) => ReactQuery.QueryKey;
+  fetchData: (
+    input: I,
+    pageParam: P | undefined,
+    fetcher: Fetcher
+  ) => Promise<QueryResult<O, E>>;
+  onError: (error: unknown) => Promise<QueryResult<O, E>>;
+  getNextPageParam: (lastPage: O, allPages: O[]) => P | undefined;
+  getPreviousPageParam: (firstPage: O, allPages: O[]) => P | undefined;
+};
+
 export const createServerQueryClient = (): ReactQuery.QueryClient => {
   return new ReactQuery.QueryClient({
     defaultOptions: {

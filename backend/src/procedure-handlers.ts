@@ -1,7 +1,8 @@
+import BN from "bn.js";
 import { exec } from "child_process";
 import { promisify } from "util";
 
-import { KeysOfUnion, ProcedureTypes } from "./client-types";
+import { Action, KeysOfUnion, ProcedureTypes } from "./client-types";
 import * as RPC from "./rpc-types";
 
 import * as stats from "./stats";
@@ -17,6 +18,15 @@ import { sendJsonRpc, sendJsonRpcQuery } from "./near";
 import { GlobalState } from "./checks";
 import { formatDate } from "./utils";
 import { nearNetworkName } from "./config";
+import {
+  AccountId,
+  ReceiptId,
+  TransactionHash,
+  UTCTimestamp,
+  YoctoNEAR,
+  AccountActivityAction,
+  AccountActivityElement,
+} from "./client-types";
 
 const promisifiedExec = promisify(exec);
 
@@ -206,6 +216,164 @@ export const procedureHandlers: {
     return {
       ...accountInfo,
       ...accountDetails,
+    };
+  },
+
+  "account-activity": async ([accountId, limit, endTimestamp]) => {
+    const changes = await accounts.getAccountChanges(
+      accountId,
+      limit,
+      endTimestamp || undefined
+    );
+
+    const idsToFetch = changes.reduce<{
+      receiptIds: ReceiptId[];
+      transactionHashes: TransactionHash[];
+    }>(
+      (acc, change) => {
+        switch (change.updateReason) {
+          case "ACTION_RECEIPT_GAS_REWARD":
+          case "RECEIPT_PROCESSING":
+            acc.receiptIds.push(change.causedByReceiptId);
+            break;
+          case "TRANSACTION_PROCESSING":
+            acc.transactionHashes.push(change.causedByTransactionHash);
+            break;
+          case "MIGRATION":
+          case "VALIDATOR_ACCOUNTS_UPDATE":
+            break;
+        }
+        return acc;
+      },
+      {
+        receiptIds: [],
+        transactionHashes: [],
+      }
+    );
+    const [receiptsResponse, transactionsResponse] = await Promise.all([
+      receipts.getReceiptsByIds(idsToFetch.receiptIds),
+      transactions.getTransactionsByHashes(idsToFetch.transactionHashes),
+    ]);
+    const getActionMapping = (
+      actions: Action[],
+      transactionHash: TransactionHash,
+      isRefund: boolean
+    ): AccountActivityAction => {
+      if (actions.length === 0) {
+        throw new Error("Unexpected zero-length array of actions");
+      }
+      if (actions.length !== 1) {
+        return {
+          type: "batch",
+          transactionHash,
+          actions: actions.map((action) =>
+            getActionMapping([action], transactionHash, isRefund)
+          ),
+        };
+      }
+      switch (actions[0].kind) {
+        case "AddKey":
+          return {
+            type: "access-key-created",
+            transactionHash,
+          };
+        case "CreateAccount":
+          return {
+            type: "account-created",
+            transactionHash,
+          };
+        case "DeleteAccount":
+          return {
+            type: "account-removed",
+            transactionHash,
+          };
+        case "DeleteKey":
+          return {
+            type: "access-key-removed",
+            transactionHash,
+          };
+        case "DeployContract":
+          return {
+            type: "contract-deployed",
+            transactionHash,
+          };
+        case "FunctionCall":
+          return {
+            type: "call-method",
+            transactionHash,
+            methodName: actions[0].args.method_name,
+          };
+        case "Stake":
+          return {
+            type: "restake",
+            transactionHash,
+          };
+        case "Transfer":
+          return {
+            type: isRefund ? "refund" : "transfer",
+            transactionHash,
+            amount: actions[0].args.deposit as YoctoNEAR,
+          };
+      }
+    };
+    return {
+      elements: changes
+        .map<AccountActivityElement | null>((change, changeIndex, changes) => {
+          switch (change.updateReason) {
+            case "ACTION_RECEIPT_GAS_REWARD":
+            case "RECEIPT_PROCESSING":
+              const connectedReceipt = receiptsResponse.get(
+                change.causedByReceiptId
+              )!;
+              return {
+                from: connectedReceipt.signerId,
+                to: connectedReceipt.receiverId,
+                timestamp: connectedReceipt.blockTimestamp,
+                action: getActionMapping(
+                  connectedReceipt.actions,
+                  connectedReceipt.originatedFromTransactionHash,
+                  connectedReceipt.signerId === "system"
+                ),
+              };
+            case "TRANSACTION_PROCESSING": {
+              const connectedTransaction = transactionsResponse.get(
+                change.causedByTransactionHash
+              )!;
+              return {
+                from: connectedTransaction.signerId,
+                to: connectedTransaction.receiverId,
+                timestamp: connectedTransaction.blockTimestamp,
+                action: getActionMapping(
+                  connectedTransaction.actions,
+                  connectedTransaction.hash,
+                  connectedTransaction.signerId === "system"
+                ),
+              };
+            }
+            case "MIGRATION":
+              return null;
+            case "VALIDATOR_ACCOUNTS_UPDATE":
+              const prevChange = changes[changeIndex + 1];
+              if (!prevChange) {
+                return null;
+              }
+              return {
+                from: "system" as AccountId,
+                to: change.affectedAccountId,
+                timestamp: parseInt(
+                  change.changedInBlockTimestamp
+                ) as UTCTimestamp,
+                action: {
+                  type: "validator-reward",
+                  blockHash: change.changedInBlockHash,
+                  amount: new BN(change.affectedAccountStakedBalance)
+                    .sub(new BN(prevChange.affectedAccountStakedBalance))
+                    .toString() as YoctoNEAR,
+                },
+              };
+          }
+        })
+        .filter((x): x is AccountActivityElement => Boolean(x)),
     };
   },
 

@@ -1,6 +1,7 @@
 import BN from "bn.js";
 import { sha256 } from "js-sha256";
 import {
+  AccountId,
   Bytes,
   TransactionHash,
   UTCTimestamp,
@@ -15,10 +16,10 @@ import {
   queryAccountInfo,
   queryAccountOutcomeTransactionsCount,
   queryAccountIncomeTransactionsCount,
+  queryAccountChanges,
+  QueryAccountChange,
 } from "./db-utils";
 import { callViewMethod, sendJsonRpc, sendJsonRpcQuery } from "./near";
-
-import { getIndexerCompatibilityTransactionActionKinds } from "./transactions";
 
 async function isAccountIndexed(accountId: string): Promise<boolean> {
   const account = await queryIndexedAccount(accountId);
@@ -66,6 +67,14 @@ async function getAccountInfo(accountId: string) {
       ? (parseInt(accountInfo.deleted_at_block_timestamp) as UTCTimestamp)
       : undefined,
   };
+}
+
+async function getAccountChanges(
+  accountId: AccountId,
+  limit: number,
+  endTimestamp?: UTCTimestamp
+): Promise<QueryAccountChange[]> {
+  return await queryAccountChanges(accountId, limit, endTimestamp);
 }
 
 function generateLockupAccountIdFromAccountId(accountId: string): string {
@@ -216,5 +225,6 @@ export {
   getAccountsList,
   getAccountTransactionsCount,
   getAccountInfo,
+  getAccountChanges,
   getAccountDetails,
 };

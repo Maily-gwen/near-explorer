@@ -21,6 +21,7 @@ import {
 import { AccountId } from "../../../types/nominal";
 
 import AccountHeader from "../../../components/beta/accounts/AccountHeader";
+import AccountTabs from "../../../components/beta/accounts/AccountTabs";
 import { useQuery } from "../../../hooks/use-query";
 import { styled } from "../../../libraries/styles";
 
@@ -84,7 +85,12 @@ const AccountQueryView: React.FC<QueryProps> = React.memo((props) => {
   switch (props.status) {
     case "success":
       if (props.data) {
-        return <AccountHeader account={props.data} />;
+        return (
+          <>
+            <AccountHeader account={props.data} />
+            <AccountTabs account={props.data} />
+          </>
+        );
       }
       return (
         <div>

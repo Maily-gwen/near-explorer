@@ -3,6 +3,8 @@ export type Nominal<T, U> = T & { readonly [t]: U };
 
 export type AccountId = Nominal<string, "AccountId">;
 export type TransactionHash = Nominal<string, "TransactionHash">;
+export type ReceiptId = Nominal<string, "ReceiptId">;
+export type BlockHash = Nominal<string, "BlockHash">;
 
 export type YoctoNEAR = Nominal<string, "YoctoNEAR">;
 

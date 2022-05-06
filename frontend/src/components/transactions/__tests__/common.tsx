@@ -1,15 +1,16 @@
 import { Receipt } from "../../../types/procedures";
 import { Transaction } from "../../../pages/transactions/[hash]";
+import { nominate } from "../../../types/nominal";
 
 export const TRANSACTIONS: Transaction[] = [
   // no action has deposit
   {
-    hash: "BvJeW6gnFjkCBKCsRNEBrRLDQCFZNxLAi6uXzmLaVrrj",
-    signerId: "signer.test",
-    receiverId: "receiver.test",
+    hash: nominate("BvJeW6gnFjkCBKCsRNEBrRLDQCFZNxLAi6uXzmLaVrrj"),
+    signerId: nominate("signer.test"),
+    receiverId: nominate("receiver.test"),
     status: "SuccessValue",
-    blockHash: "BvJeW6gnFjkCBKCsRNEBrRLDQCFZNxLAi6uXzmLaVrrj",
-    blockTimestamp: +new Date(2019, 1, 1),
+    blockHash: nominate("BvJeW6gnFjkCBKCsRNEBrRLDQCFZNxLAi6uXzmLaVrrj"),
+    blockTimestamp: nominate(+new Date(2019, 1, 1)),
     transactionIndex: 0,
     actions: [
       {
@@ -225,12 +226,12 @@ export const TRANSACTIONS: Transaction[] = [
   },
   //one deposit with small amount
   {
-    hash: "222eW6gnFjkCBKCsRNEBrRLDQCFZNxLAi6uXzmLaVrrj",
-    signerId: "signer2.test",
-    receiverId: "receiver2.test",
+    hash: nominate("222eW6gnFjkCBKCsRNEBrRLDQCFZNxLAi6uXzmLaVrrj"),
+    signerId: nominate("signer2.test"),
+    receiverId: nominate("receiver2.test"),
     status: "SuccessValue",
-    blockHash: "222BBBgnFjkCBKCsRNEBrRLDQCFZNxLAi6uXzmLaVrrj",
-    blockTimestamp: +new Date(2019, 1, 1),
+    blockHash: nominate("222BBBgnFjkCBKCsRNEBrRLDQCFZNxLAi6uXzmLaVrrj"),
+    blockTimestamp: nominate(+new Date(2019, 1, 1)),
     transactionIndex: 0,
     actions: [
       {
@@ -316,12 +317,12 @@ export const TRANSACTIONS: Transaction[] = [
   },
   //multi deposit with huge amount
   {
-    hash: "222eW6gnFjkCBKCsRNEBrRLDQCFZNxLAi6uXzmLaVxxx",
-    signerId: "signer2.test",
-    receiverId: "receiver2.test",
+    hash: nominate("222eW6gnFjkCBKCsRNEBrRLDQCFZNxLAi6uXzmLaVxxx"),
+    signerId: nominate("signer2.test"),
+    receiverId: nominate("receiver2.test"),
     status: "SuccessValue",
-    blockHash: "222BBBgnFjkCBKCsRNEBrRLDQCFZNxLAi6uXzmLaVrrj",
-    blockTimestamp: +new Date(2019, 1, 1),
+    blockHash: nominate("222BBBgnFjkCBKCsRNEBrRLDQCFZNxLAi6uXzmLaVrrj"),
+    blockTimestamp: nominate(+new Date(2019, 1, 1)),
     transactionIndex: 0,
     actions: [
       {
@@ -397,12 +398,12 @@ export const TRANSACTIONS: Transaction[] = [
 ];
 
 export const TRANSACTION_WITH_SUCCESSFUL_RECEIPT: Transaction = {
-  hash: "T1111111111111111111111111111111111111111111",
-  signerId: "signer.test",
-  receiverId: "receiver.test",
+  hash: nominate("T1111111111111111111111111111111111111111111"),
+  signerId: nominate("signer.test"),
+  receiverId: nominate("receiver.test"),
   status: "SuccessValue",
-  blockHash: "B111111111111111111111111111111111111111111",
-  blockTimestamp: +new Date(2019, 1, 1),
+  blockHash: nominate("B111111111111111111111111111111111111111111"),
+  blockTimestamp: nominate(+new Date(2019, 1, 1)),
   transactionIndex: 0,
   actions: [
     {
@@ -485,12 +486,12 @@ export const TRANSACTION_WITH_SUCCESSFUL_RECEIPT: Transaction = {
 };
 
 export const TRANSACTION_WITH_MANY_RECEIPTS: Transaction = {
-  hash: "T1111111111111111111111111111111111111111111",
-  signerId: "signer.test",
-  receiverId: "receiver.test",
+  hash: nominate("T1111111111111111111111111111111111111111111"),
+  signerId: nominate("signer.test"),
+  receiverId: nominate("receiver.test"),
   status: "SuccessValue",
-  blockHash: "B111111111111111111111111111111111111111111",
-  blockTimestamp: +new Date(2019, 1, 1),
+  blockHash: nominate("B111111111111111111111111111111111111111111"),
+  blockTimestamp: nominate(+new Date(2019, 1, 1)),
   transactionIndex: 0,
   actions: [
     {
@@ -668,12 +669,12 @@ export const TRANSACTION_WITH_MANY_RECEIPTS: Transaction = {
 };
 
 export const TRANSACTION_WITH_FAILING_RECEIPT: Transaction = {
-  hash: "T1111111111111111111111111111111111111111111",
-  signerId: "signer.test",
-  receiverId: "receiver.test",
+  hash: nominate("T1111111111111111111111111111111111111111111"),
+  signerId: nominate("signer.test"),
+  receiverId: nominate("receiver.test"),
   status: "Failure",
-  blockHash: "B111111111111111111111111111111111111111111",
-  blockTimestamp: +new Date(2019, 1, 1),
+  blockHash: nominate("B111111111111111111111111111111111111111111"),
+  blockTimestamp: nominate(+new Date(2019, 1, 1)),
   transactionIndex: 0,
   actions: [
     {
@@ -773,13 +774,13 @@ export const RECEIPTS: Receipt[] = [
     actions: [
       { args: { deposit: "8403180157952936387200" }, kind: "Transfer" },
     ],
-    blockTimestamp: 1621931941926,
+    blockTimestamp: nominate(1621931941926),
     gasBurnt: "0",
-    receiptId: "D6a85wNQ47v3dPy8bGF2WQpKQu5di2dnx4EMohm9f5fc",
-    receiverId: "ig27.near",
-    signerId: "system",
+    receiptId: nominate("D6a85wNQ47v3dPy8bGF2WQpKQu5di2dnx4EMohm9f5fc"),
+    receiverId: nominate("ig27.near"),
+    signerId: nominate("system"),
     status: "SuccessValue",
-    originatedFromTransactionHash: null,
+    originatedFromTransactionHash: nominate("hash"),
     tokensBurnt: "0",
   },
   {
@@ -794,13 +795,15 @@ export const RECEIPTS: Receipt[] = [
         kind: "FunctionCall",
       },
     ],
-    blockTimestamp: 1621931942764,
-    gasBurnt: "3398892960118",
-    receiptId: "BvG4qfnrxVfpqXrSgxxnfdrHYTKFjTcf2LtgEeX5Mzyz",
-    receiverId: "5ce78003b590264df3f259983f3c3e0917fc10ea.lockup.near",
-    signerId: "5ce78003b590264df3f259983f3c3e0917fc10ea.lockup.near",
+    blockTimestamp: nominate(1621931942764),
+    gasBurnt: nominate("3398892960118"),
+    receiptId: nominate("BvG4qfnrxVfpqXrSgxxnfdrHYTKFjTcf2LtgEeX5Mzyz"),
+    receiverId: nominate(
+      "5ce78003b590264df3f259983f3c3e0917fc10ea.lockup.near"
+    ),
+    signerId: nominate("5ce78003b590264df3f259983f3c3e0917fc10ea.lockup.near"),
     status: "SuccessValue",
-    originatedFromTransactionHash: null,
+    originatedFromTransactionHash: nominate("hash"),
     tokensBurnt: "339889296011800000000",
   },
   {
@@ -815,13 +818,13 @@ export const RECEIPTS: Receipt[] = [
         kind: "FunctionCall",
       },
     ],
-    blockTimestamp: 1621931941926,
+    blockTimestamp: nominate(1621931941926),
     gasBurnt: "5461623809433",
-    receiptId: "A7imDWVu3jS5J86nc7VauS947kTyjgVSmYsu29YgBCSN",
-    receiverId: "bisontrails.poolv1.near",
-    signerId: "5ce78003b590264df3f259983f3c3e0917fc10ea.lockup.near",
+    receiptId: nominate("A7imDWVu3jS5J86nc7VauS947kTyjgVSmYsu29YgBCSN"),
+    receiverId: nominate("bisontrails.poolv1.near"),
+    signerId: nominate("5ce78003b590264df3f259983f3c3e0917fc10ea.lockup.near"),
     status: "SuccessValue",
-    originatedFromTransactionHash: null,
+    originatedFromTransactionHash: nominate("hash"),
     tokensBurnt: "546162380943300000000",
   },
   {
@@ -831,13 +834,13 @@ export const RECEIPTS: Receipt[] = [
         kind: "Transfer",
       },
     ],
-    blockTimestamp: 1621931941926,
+    blockTimestamp: nominate(1621931941926),
     gasBurnt: "0",
-    receiptId: "FiT82ZetgfvM4de3pte9f9WL4jrFtVjttYW9KL4Erj2b",
-    receiverId: "wbc992.near",
-    signerId: "system",
+    receiptId: nominate("FiT82ZetgfvM4de3pte9f9WL4jrFtVjttYW9KL4Erj2b"),
+    receiverId: nominate("wbc992.near"),
+    signerId: nominate("system"),
     status: "SuccessValue",
-    originatedFromTransactionHash: null,
+    originatedFromTransactionHash: nominate("hash"),
     tokensBurnt: "0",
   },
   {
@@ -853,13 +856,13 @@ export const RECEIPTS: Receipt[] = [
         kind: "FunctionCall",
       },
     ],
-    blockTimestamp: 1621931942764,
+    blockTimestamp: nominate(1621931942764),
     gasBurnt: "3247920255172",
-    receiptId: "2idRLoceeRzRaFpjALFTgvBTuutQTqDRJajMMssVgLuB",
-    receiverId: "near",
-    signerId: "near",
+    receiptId: nominate("2idRLoceeRzRaFpjALFTgvBTuutQTqDRJajMMssVgLuB"),
+    receiverId: nominate("near"),
+    signerId: nominate("near"),
     status: "SuccessValue",
-    originatedFromTransactionHash: null,
+    originatedFromTransactionHash: nominate("hash"),
     tokensBurnt: "324792025517200000000",
   },
   {
@@ -877,26 +880,26 @@ export const RECEIPTS: Receipt[] = [
       },
       { args: { deposit: "110000000000000000000000" }, kind: "Transfer" },
     ],
-    blockTimestamp: 1621931941926,
+    blockTimestamp: nominate(1621931941926),
     gasBurnt: "424555062500",
-    receiptId: "GUswZE9PQijf7nrnjfNuWQXsYFjdr8vocqwxSuKt35Zx",
-    receiverId: "rongyuejing.near",
-    signerId: "near",
+    receiptId: nominate("GUswZE9PQijf7nrnjfNuWQXsYFjdr8vocqwxSuKt35Zx"),
+    receiverId: nominate("rongyuejing.near"),
+    signerId: nominate("near"),
     status: "SuccessValue",
-    originatedFromTransactionHash: null,
+    originatedFromTransactionHash: nominate("hash"),
     tokensBurnt: "42455506250000000000",
   },
   {
     actions: [
       { args: { deposit: "67402646702234962576368" }, kind: "Transfer" },
     ],
-    blockTimestamp: 1621931941926,
+    blockTimestamp: nominate(1621931941926),
     gasBurnt: "0",
-    receiptId: "Fv9EQm4HTFWyZBk4KDjMVbgoSLfoTPfhEkTL4f1sd6km",
-    receiverId: "app.nearcrowd.near",
-    signerId: "system",
+    receiptId: nominate("Fv9EQm4HTFWyZBk4KDjMVbgoSLfoTPfhEkTL4f1sd6km"),
+    receiverId: nominate("app.nearcrowd.near"),
+    signerId: nominate("system"),
     status: "SuccessValue",
-    originatedFromTransactionHash: null,
+    originatedFromTransactionHash: nominate("hash"),
     tokensBurnt: "0",
   },
   {
@@ -912,14 +915,15 @@ export const RECEIPTS: Receipt[] = [
         kind: "FunctionCall",
       },
     ],
-    blockTimestamp: 1621931941926,
+    blockTimestamp: nominate(1621931941926),
     gasBurnt: "6048575020858",
-    receiptId: "7uADRkZL3b8HRbCRe3ML6yRyVZ46HHp1pEJKbxewq5Hg",
-    receiverId: "app.nearcrowd.near",
-    signerId: "elonmusk_tesla.near",
+    receiptId: nominate("7uADRkZL3b8HRbCRe3ML6yRyVZ46HHp1pEJKbxewq5Hg"),
+    receiverId: nominate("app.nearcrowd.near"),
+    signerId: nominate("elonmusk_tesla.near"),
     status: "SuccessValue",
-    originatedFromTransactionHash:
-      "2WDYbcuRyyRXJvrXkfFej9Vrv3s3GNTxVQAqKFTiEtGh",
+    originatedFromTransactionHash: nominate(
+      "2WDYbcuRyyRXJvrXkfFej9Vrv3s3GNTxVQAqKFTiEtGh"
+    ),
     tokensBurnt: "604857502085800000000",
   },
 ];
