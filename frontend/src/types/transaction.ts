@@ -44,8 +44,7 @@ export type Transaction = {
   status: KeysOfUnion<RPC.FinalExecutionStatus>;
   gasUsed: string;
   gasAttached: string;
-  receipts: TransactionReceipt[];
-  refundReceipts: RefundReceipt[];
+  receipt: TransactionReceipt;
 };
 
 export type TransactionReceipt = {
@@ -60,6 +59,7 @@ export type TransactionReceipt = {
   tokensBurnt: YoctoNEAR;
   logs: string[] | [];
   status: RPC.ExecutionStatusView;
+  outgoingReceipts: TransactionReceipt[] | [];
 };
 
 export type RefundReceipt = {

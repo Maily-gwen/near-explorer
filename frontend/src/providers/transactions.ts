@@ -139,37 +139,39 @@ const getTransaction = async (
       new Map()
     );
 
-    const receiptsMap: Map<string, TransactionReceipt> = new Map();
+    // const receiptsMap: Map<string, TransactionReceipt> = new Map();
 
     const collectNestedReceiptWithOutcome = (
-      receiptHash: string,
-      parentReceiptHash: ReceiptId | null = null
-    ): TransactionReceipt[] => {
-      const receipt = receiptsByIdMap.get(receiptHash);
-      const receiptOutcome = receiptOutcomesByIdMap.get(receiptHash);
+      receiptHash: string
+    ): TransactionReceipt | any => {
+      const receipt = receiptsByIdMap.get(receiptHash)!;
+      const receiptOutcome = receiptOutcomesByIdMap.get(receiptHash)!;
 
-      receiptsMap.set(receiptHash, {
-        actions: receipt!.actions, // need to resolve '!' and '?'
+      return {
+        actions: receipt.actions, // need to resolve '!' and '?'
         deposit: getDeposit(receipt?.actions ?? []) || null,
-        signerId: receipt!.predecessor_id, // do we need to rename 'signerId' to 'predecessor_id'?
-        parentReceiptHash,
-        includedInBlock: receiptOutcome!.includedInBlock, // executed in block
-        receiptId: receiptOutcome?.id as ReceiptId,
-        receiverId: receiptOutcome!.outcome.executor_id as AccountId,
-        gasBurnt: receiptOutcome?.outcome.gas_burnt,
-        tokensBurnt: receiptOutcome!.outcome.tokens_burnt as YoctoNEAR,
-        logs: receiptOutcome?.outcome.logs || [],
-        status: receiptOutcome!.outcome.status,
-      });
+        signerId: receipt.predecessor_id, // do we need to rename 'signerId' to 'predecessor_id'?
+        // parentReceiptHash,
+        includedInBlock: receiptOutcome.includedInBlock, // executed in block
+        receiptId: receiptOutcome.id as ReceiptId,
+        receiverId: receiptOutcome.outcome.executor_id as AccountId,
+        gasBurnt: receiptOutcome.outcome.gas_burnt,
+        tokensBurnt: receiptOutcome.outcome.tokens_burnt as YoctoNEAR,
+        logs: receiptOutcome.outcome.logs || [],
+        status: receiptOutcome.outcome.status,
+        outgoingReceipts: receiptOutcome.outcome.receipt_ids.map(
+          collectNestedReceiptWithOutcome
+        ),
+      };
 
-      receiptOutcome?.outcome.receipt_ids.forEach((executedReceipt: string) =>
-        collectNestedReceiptWithOutcome(
-          executedReceipt,
-          receiptHash as ReceiptId
-        )
-      );
+      // receiptOutcome?.outcome.receipt_ids.forEach((executedReceipt: string) =>
+      //   collectNestedReceiptWithOutcome(
+      //     executedReceipt,
+      //     receiptHash as ReceiptId
+      //   )
+      // );
 
-      return [...receiptsMap.values()];
+      // return [...receiptsMap.values()];
     };
 
     const _gasBurntByTx = transactionOutcome
@@ -219,21 +221,21 @@ const getTransaction = async (
       .add(_tokensBurntByReceipts)
       .toString() as string;
 
-    const receiptsToValues = collectNestedReceiptWithOutcome(
-      receiptsOutcome[0].id
-    );
+    // const receiptsToValues = collectNestedReceiptWithOutcome(
+    //   receiptsOutcome[0].id
+    // );
 
-    const refundReceiptsMap = receiptsToValues.reduce((acc, receipt) => {
-      const parentReceipt =
-        receipt.parentReceiptHash && receiptsMap.has(receipt.parentReceiptHash);
-      if (receipt.signerId === "system" && parentReceipt) {
-        acc.set(receipt.receiptId, {
-          ...receipt,
-          refund: getDeposit(receipt.actions),
-        });
-      }
-      return acc;
-    }, new Map());
+    // const refundReceiptsMap = receiptsToValues.reduce((acc, receipt) => {
+    //   const parentReceipt =
+    //     receipt.parentReceiptHash && receiptsMap.has(receipt.parentReceiptHash);
+    //   if (receipt.signerId === "system" && parentReceipt) {
+    //     acc.set(receipt.receiptId, {
+    //       ...receipt,
+    //       refund: getDeposit(receipt.actions),
+    //     });
+    //   }
+    //   return acc;
+    // }, new Map());
 
     const response = {
       hash: transactionHash,
@@ -245,10 +247,11 @@ const getTransaction = async (
       status,
       gasUsed,
       gasAttached,
-      receipts: [...receiptsMap.values()].filter(
-        (receipt) => !refundReceiptsMap.has(receipt.receiptId)
-      ),
-      refundReceipts: [...refundReceiptsMap.values()],
+      receipt: collectNestedReceiptWithOutcome(receiptsOutcome[0].id),
+      // receipts: [...receiptsMap.values()].filter(
+      //   (receipt) => !refundReceiptsMap.has(receipt.receiptId)
+      // ),
+      // refundReceipts: [...refundReceiptsMap.values()],
     };
 
     return response;

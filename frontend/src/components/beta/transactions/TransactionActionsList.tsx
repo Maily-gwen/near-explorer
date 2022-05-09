@@ -1,15 +1,17 @@
 import * as React from "react";
 import { styled } from "../../../libraries/styles";
-import {
-  Transaction,
-  TransactionReceipt as TxReceipt,
-} from "../../../types/transaction";
+import { Transaction } from "../../../types/transaction";
 
 import TransactionReceipt from "./TransactionReceipt";
 
 type Props = {
   transaction: Transaction;
 };
+
+const Contaier = styled("div", {
+  minHeight: "calc(100vh - 360px)",
+  background: "#fff",
+});
 
 const Wrapper = styled("div", {
   display: "flex",
@@ -22,31 +24,25 @@ const Wrapper = styled("div", {
   fontFamily: "Manrope",
 });
 
-const TransactionActionsList: React.FC<Props> = React.memo(
-  ({ transaction: { receipts, refundReceipts } }) => {
-    const refundReceiptsMap = new Map();
-    refundReceipts.forEach((receipt) => {
-      // handle multiple refunds per receipt
-      if (refundReceiptsMap.has(receipt.parentReceiptHash)) {
-        refundReceiptsMap.set(receipt.parentReceiptHash, [
-          ...refundReceiptsMap.get(receipt.parentReceiptHash),
-          receipt,
-        ]);
-      } else {
-        refundReceiptsMap.set(receipt.parentReceiptHash, [receipt]);
-      }
-    });
+const Title = styled("h4", {
+  width: "100%",
+  fontSize: 16,
+  fontWeight: 700,
+  lineHeight: "28px",
+  borderBottom: "1px solid rgba(0, 0, 0, .1)",
+  marginBottom: 30,
+  paddingBottom: 8,
+});
 
+const TransactionActionsList: React.FC<Props> = React.memo(
+  ({ transaction: { receipt } }) => {
     return (
-      <Wrapper>
-        {receipts.map((receipt: TxReceipt) => (
-          <TransactionReceipt
-            key={receipt.receiptId}
-            receipt={receipt}
-            refundReceipts={refundReceiptsMap.get(receipt.receiptId)}
-          />
-        ))}
-      </Wrapper>
+      <Contaier>
+        <Wrapper>
+          <Title>Execution Plan</Title>
+          <TransactionReceipt receipt={receipt} />
+        </Wrapper>
+      </Contaier>
     );
   }
 );
