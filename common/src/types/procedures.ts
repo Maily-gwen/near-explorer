@@ -218,6 +218,20 @@ export type DeployInfo = {
   serviceName: string;
 };
 
+export type FungibleToken = {
+  contractId: string;
+  name: string;
+  symbol: string;
+  totalSupply: string;
+  decimals: number;
+  icon: string | null;
+};
+
+export type OffsetPagination = {
+  limit: number;
+  offset: number;
+};
+
 export type ProcedureTypes = {
   "account-info": {
     args: [string];
@@ -392,6 +406,15 @@ export type ProcedureTypes = {
   "deploy-info": {
     args: [];
     result: DeployInfo;
+  };
+
+  "fungible-tokens-amount": {
+    args: [];
+    result: number;
+  };
+  "fungible-tokens": {
+    args: [OffsetPagination];
+    result: FungibleToken[];
   };
 };
 

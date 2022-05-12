@@ -17,6 +17,7 @@ import { databaseConfigs } from "../config/database";
 import { HOUR } from "./consts";
 import { config } from "./config";
 import {
+  OffsetPagination,
   TelemetryRequest,
   TransactionPagination,
   ValidatorTelemetry,
@@ -1125,6 +1126,32 @@ export const queryGasUsedInChunks = async (blockHash: string) => {
     .select((eb) => sum(eb, "gas_used").as("gas_used"))
     .where("included_in_block_hash", "=", blockHash)
     .executeTakeFirst();
+};
+
+// FTs
+export const queryFungibleTokensAmount = async () => {
+  const selection = await indexerDatabase
+    .selectFrom("assets__fungible_token_events")
+    // TODO: Research if we can get rid of distinct without performance degradation
+    .select(
+      sql<string>`count(distinct emitted_by_contract_account_id)`.as("amount")
+    )
+    .executeTakeFirstOrThrow();
+  return parseInt(selection.amount);
+};
+
+export const queryFungibleTokens = async (pagination: OffsetPagination) => {
+  return (
+    indexerDatabase
+      .selectFrom("assets__fungible_token_events")
+      // TODO: Research if we can get rid of distinct without performance degradation
+      .select("emitted_by_contract_account_id as id")
+      .distinctOn("emitted_by_contract_account_id")
+      .orderBy("id", "desc")
+      .limit(pagination.limit)
+      .offset(pagination.offset)
+      .execute()
+  );
 };
 
 export const maybeCreateTelemetryTable = async () => {

@@ -10,6 +10,7 @@ import * as contracts from "./contracts";
 import * as blocks from "./blocks";
 import * as chunks from "./chunks";
 import * as accounts from "./accounts";
+import * as fungibleTokens from "./fungible-tokens";
 import * as telemetry from "./telemetry";
 
 import { sendJsonRpc, sendJsonRpcQuery } from "./near";
@@ -361,5 +362,20 @@ export const procedureHandlers: {
         serviceName: `backend/${config.networkName}`,
       };
     }
+  },
+
+  "fungible-tokens-amount": async () => {
+    return await fungibleTokens.getFungibleTokenContractsAmount();
+  },
+
+  "fungible-tokens": async ([pagination]) => {
+    const fungibleTokenContracts = await fungibleTokens.getFungibleTokenContracts(
+      pagination
+    );
+    return Promise.all(
+      fungibleTokenContracts.map((contract) =>
+        fungibleTokens.getFungibleToken(contract)
+      )
+    );
   },
 };
