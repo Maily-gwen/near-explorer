@@ -10,6 +10,7 @@ import * as contracts from "./contracts";
 import * as blocks from "./blocks";
 import * as chunks from "./chunks";
 import * as accounts from "./accounts";
+import * as fungibleTokens from "./fungible-tokens";
 import * as telemetry from "./telemetry";
 
 import { sendJsonRpc, sendJsonRpcQuery } from "./near";
@@ -233,6 +234,10 @@ export const procedureHandlers: {
       ...accountInfo,
       ...accountDetails,
     };
+  },
+
+  "account-fungible-tokens": async ([accountId, limit, offset]) => {
+    return await fungibleTokens.getFungibleTokens(accountId, limit, offset);
   },
 
   // blocks

@@ -8,6 +8,7 @@ import Transactions, {
   Props as TransactionsProps,
 } from "../../components/transactions/Transactions";
 import Content from "../../components/utils/Content";
+import AccountFungibleTokens from "../../components/accounts/AccountFungibleTokens";
 
 import TransactionIconSvg from "../../../public/static/images/icon-t-transactions.svg";
 
@@ -77,6 +78,7 @@ const AccountDetail: NextPage<Props> = React.memo(({ accountId }) => {
         <>
           <Container>
             <ContractDetails accountId={accountId} />
+            <AccountFungibleTokens accountId={accountId} />
           </Container>
           <Content
             icon={<TransactionIcon />}

@@ -218,10 +218,22 @@ export type DeployInfo = {
   serviceName: string;
 };
 
+export type AccountFungibleToken = {
+  symbol: string;
+  decimals: number;
+  name: string;
+  authorAccountId: string;
+  balance: string;
+};
+
 export type ProcedureTypes = {
   "account-info": {
     args: [string];
     result: Account | null;
+  };
+  "account-fungible-tokens": {
+    args: [string, number, number];
+    result: AccountFungibleToken[];
   };
   "account-transactions-count": {
     args: [string];
