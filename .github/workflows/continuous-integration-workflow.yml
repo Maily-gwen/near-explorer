@@ -84,10 +84,10 @@ jobs:
       - name: Install Kanel
         run: cd backend && npm install
       - name: Copy original models
-        run: cd backend && cp -r config/models config/models-original
+        run: cd backend && cp -r src/models src/models-original
       - name: Generate types
         run: cd backend && npm run db:generate-types
       - name: Run prettier on newly generated types
-        run: npm run fmt
+        run: cd backend && npm run db:format-types
       - name: Compare types
-        run: cd backend && diff -bur config/models-original config/models
+        run: cd backend && diff -bur src/models-original src/models
