@@ -53,7 +53,7 @@ const stitches = createStitches({
     },
     sizes: {
       avatarSize: "60px",
-      avatarSizeSmall: "17px",
+      avatarSizeSmall: "20px",
       desktop: "1161px",
     },
     radii: {

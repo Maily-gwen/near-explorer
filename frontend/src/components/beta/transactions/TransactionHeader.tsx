@@ -1,4 +1,3 @@
-import BN from "bn.js";
 import moment from "moment";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -6,7 +5,6 @@ import { formatNear } from "../../../libraries/formatting";
 import { styled } from "../../../libraries/styles";
 
 import CopyToClipboard from "../../beta/common/CopyToClipboard";
-import Gas from "../../utils/Gas";
 import TransactionStatus from "./TransactionStatus";
 
 type Props = {
@@ -98,22 +96,6 @@ const TransactionHeader: React.FC<Props> = React.memo((props) => {
           <div>
             <AmountHeader>{t("pages.transaction.header.fee")}</AmountHeader>
             <Amount>{formatNear(props.transaction.transactionFee)}</Amount>
-          </div>
-          <NumericDivider />
-          <div>
-            <AmountHeader>
-              {t("pages.transaction.header.attached")}
-            </AmountHeader>
-            <Amount>
-              <Gas gas={new BN(props.transaction.gasAttached) || 0} />
-            </Amount>
-          </div>
-          <NumericDivider />
-          <div>
-            <AmountHeader>{t("pages.transaction.header.burned")}</AmountHeader>
-            <Amount>
-              <Gas gas={new BN(props.transaction.gasUsed) || 0} />
-            </Amount>
           </div>
           <NumericDivider />
           <div>

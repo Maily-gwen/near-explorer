@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { styled } from "../../../libraries/styles";
-import { RefundReceipt, TransactionReceipt } from "../../../types/transaction";
+import { TransactionReceipt } from "../../../types/transaction";
 
 import { Tabs } from "../common/Tabs";
 import ReceiptDetails from "./ReceiptDetails";
@@ -10,13 +10,10 @@ import InspectReceipt from "./InspectReceipt";
 type Props = {
   isRowActive: boolean;
   receipt: TransactionReceipt;
-  refundReceipts?: RefundReceipt[];
+  refundReceipts?: TransactionReceipt[];
 };
 
-const Wrapper = styled("div", {
-  paddingVertical: 24,
-  // TODO: Place a proper padding here
-  paddingHorizontal: 40,
+const TabsWrapper = styled("div", {
   display: "flex",
   flexDirection: "column",
   fontFamily: "Manrope",
@@ -33,12 +30,12 @@ const ReceiptInfo: React.FC<Props> = React.memo(
       return null;
     }
     return (
-      <Wrapper>
+      <TabsWrapper>
         <Tabs
           tabs={[
             {
-              id: "details",
-              label: <TabLabel>{t("pages.transaction.tabs.details")}</TabLabel>,
+              id: "output",
+              label: <TabLabel>{t("pages.transaction.tabs.output")}</TabLabel>,
               node: <ReceiptDetails receipt={receipt} />,
             },
             {
@@ -53,7 +50,7 @@ const ReceiptInfo: React.FC<Props> = React.memo(
             },
           ]}
         />
-      </Wrapper>
+      </TabsWrapper>
     );
   }
 );

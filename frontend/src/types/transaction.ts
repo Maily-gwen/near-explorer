@@ -45,6 +45,7 @@ export type Transaction = {
   gasUsed: string;
   gasAttached: string;
   receipt: TransactionReceipt;
+  refundReceipts: TransactionReceipt[] | [];
 };
 
 export type TransactionReceipt = {
@@ -60,21 +61,6 @@ export type TransactionReceipt = {
   logs: string[] | [];
   status: RPC.ExecutionStatusView;
   outgoingReceipts: TransactionReceipt[] | [];
-};
-
-export type RefundReceipt = {
-  actions: Action[];
-  deposit: YoctoNEAR | null;
-  signerId: string;
-  parentReceiptHash: ReceiptId;
-  includedInBlockHash?: string;
-  receiptId: ReceiptId;
-  receiverId: AccountId;
-  gasBurnt?: number;
-  tokensBurnt: YoctoNEAR;
-  logs: string[] | [];
-  status: RPC.ExecutionStatusView;
-  refund?: YoctoNEAR;
 };
 
 export type TransactionOutcome = {
@@ -113,3 +99,66 @@ export type TransactionErrorResponse = {
   error: TransactionError;
   details?: string;
 };
+
+export type TransactionTransferAction = {
+  type: "transfer";
+  amount: YoctoNEAR;
+};
+
+// export type TransactionRefundAction = {
+//   type: "refund";
+//   amount: YoctoNEAR;
+// };
+
+// export type TransactionValidatorRewardAction = {
+//   type: "validator-reward";
+//   amount: YoctoNEAR;
+//   blockHash: BlockHash;
+// };
+
+export type TransactionContractDeployedAction = {
+  type: "contract-deployed";
+};
+
+export type TransactionAccessKeyCreatedAction = {
+  type: "access-key-created";
+};
+
+export type TransactionAccessKeyRemovedAction = {
+  type: "access-key-removed";
+};
+
+export type TransactionCallMethodAction = {
+  type: "call-method";
+  methodName: string;
+};
+
+export type TransactionRestakeAction = {
+  type: "restake";
+};
+
+export type TransactionAccountCreatedAction = {
+  type: "account-created";
+};
+
+export type TransactionAccountRemovedAction = {
+  type: "account-removed";
+};
+
+export type TransactionBatchAction = {
+  type: "batch";
+  actions: TransactionActivityAction[];
+};
+
+export type TransactionActivityAction =
+  | TransactionTransferAction
+  // | TransactionRefundAction
+  // | TransactionValidatorRewardAction
+  | TransactionContractDeployedAction
+  | TransactionAccessKeyCreatedAction
+  | TransactionAccessKeyRemovedAction
+  | TransactionCallMethodAction
+  | TransactionRestakeAction
+  | TransactionAccountCreatedAction
+  | TransactionAccountRemovedAction
+  | TransactionBatchAction;

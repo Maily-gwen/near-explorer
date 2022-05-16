@@ -2,7 +2,8 @@ import BN from "bn.js";
 import * as React from "react";
 import { styled } from "../../../libraries/styles";
 import { formatNear } from "../../../libraries/formatting";
-import { RefundReceipt, TransactionReceipt } from "../../../types/transaction";
+import { TransactionReceipt } from "../../../types/transaction";
+import AccountLink from "../common/AccountLink";
 import BlockLink from "../common/BlockLink";
 
 import Gas from "../../utils/Gas";
@@ -10,18 +11,19 @@ import { YoctoNEAR } from "../../../types/nominal";
 
 type Props = {
   receipt: TransactionReceipt;
-  refundReceipts?: RefundReceipt[];
+  refundReceipts?: TransactionReceipt[];
 };
 
 const Table = styled("table", {
   width: "100%",
-  margin: "0 80px",
+  fontFamily: "SF Mono",
+  marginVertical: 24,
 });
 
 const TableElement = styled("td", {
   color: "#000000",
-  fontSize: 15,
-  lineHeight: "40px",
+  fontSize: "$font-s",
+  lineHeight: "20px",
 });
 
 const InspectReceipt: React.FC<Props> = React.memo(
@@ -29,10 +31,12 @@ const InspectReceipt: React.FC<Props> = React.memo(
     const refund =
       refundReceipts
         ?.reduce(
-          (acc, receipt) => acc.add(new BN(receipt.refund || 0)),
+          (acc: BN, receipt: TransactionReceipt) =>
+            acc.add(new BN(receipt.deposit || 0)),
           new BN(0)
         )
         .toString() ?? "0";
+
     return (
       <Table>
         <tr>
@@ -47,11 +51,15 @@ const InspectReceipt: React.FC<Props> = React.memo(
         </tr>
         <tr>
           <TableElement>Predecessor ID</TableElement>
-          <TableElement>{receipt.signerId}</TableElement>
+          <TableElement>
+            <AccountLink accountId={receipt.signerId} />
+          </TableElement>
         </tr>
         <tr>
           <TableElement>Receiver ID</TableElement>
-          <TableElement>{receipt.receiverId}</TableElement>
+          <TableElement>
+            <AccountLink accountId={receipt.receiverId} />
+          </TableElement>
         </tr>
         <tr>
           <TableElement>Attached Gas</TableElement>
