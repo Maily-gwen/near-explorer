@@ -105,6 +105,23 @@
       }
     }
   },
+  "pages": {
+    "account": {
+      "header": {
+        "createdAt": "Создан: ${fromNow}",
+        "storageUsed": "Задействовано хранилища: ${amount}",
+        "accountType": {
+          "user": "Пользователь",
+          "contract": "Контракт"
+        },
+        "amounts": {
+          "balance": "Баланс",
+          "staked": "В стейкинге",
+          "transactions": "Транзакций"
+        }
+      }
+    }
+  },
   "component": {
     "nodes": {
       "Validators": {
