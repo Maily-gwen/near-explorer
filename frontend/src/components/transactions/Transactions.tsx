@@ -55,6 +55,7 @@ const TransactionsList: React.FC<Props> = ({ fetch }) => {
           };
         },
         fetch,
+        props: {},
       }),
     [fetch]
   );

@@ -12,6 +12,7 @@ import {
   queryAccountTransactionsList,
   queryTransactionsListInBlock,
   queryTransactionInfo,
+  queryTransactionsByHashes,
 } from "./db-utils";
 
 const INDEXER_COMPATIBILITY_TRANSACTION_ACTION_KINDS = new Map<
@@ -74,6 +75,20 @@ export const getTransactionsList = async (
     return [];
   }
   return await createTransactionsList(transactionsList);
+};
+
+export const getTransactionsByHashes = async (
+  hashes: string[]
+): Promise<Map<string, TransactionBaseInfo>> => {
+  const rawTransactions = await queryTransactionsByHashes(hashes);
+  if (rawTransactions.length === 0) {
+    return new Map();
+  }
+  const transactions = await createTransactionsList(rawTransactions);
+  return transactions.reduce((acc, transaction) => {
+    acc.set(transaction.hash, transaction);
+    return acc;
+  }, new Map());
 };
 
 export const getAccountTransactionsList = async (

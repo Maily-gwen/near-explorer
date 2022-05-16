@@ -28,6 +28,86 @@ export type Account = {
   transactionsQuantity: number;
 };
 
+export type AccountTransferAction = {
+  type: "transfer";
+  amount: string;
+  transactionHash: string;
+};
+
+export type AccountRefundAction = {
+  type: "refund";
+  amount: string;
+  transactionHash: string;
+};
+
+export type AccountValidatorRewardAction = {
+  type: "validator-reward";
+  amount: string;
+  blockHash: string;
+};
+
+export type AccountContractDeployedAction = {
+  type: "contract-deployed";
+  transactionHash: string;
+};
+
+export type AccountAccessKeyCreatedAction = {
+  type: "access-key-created";
+  transactionHash: string;
+};
+
+export type AccountAccessKeyRemovedAction = {
+  type: "access-key-removed";
+  transactionHash: string;
+};
+
+export type AccountCallMethodAction = {
+  type: "call-method";
+  methodName: string;
+  transactionHash: string;
+};
+
+export type AccountRestakeAction = {
+  type: "restake";
+  transactionHash: string;
+};
+
+export type AccountAccountCreatedAction = {
+  type: "account-created";
+  transactionHash: string;
+};
+
+export type AccountAccountRemovedAction = {
+  type: "account-removed";
+  transactionHash: string;
+};
+
+export type AccountBatchAction = {
+  type: "batch";
+  actions: AccountActivityAction[];
+  transactionHash: string;
+};
+
+export type AccountActivityAction =
+  | AccountTransferAction
+  | AccountRefundAction
+  | AccountValidatorRewardAction
+  | AccountContractDeployedAction
+  | AccountAccessKeyCreatedAction
+  | AccountAccessKeyRemovedAction
+  | AccountCallMethodAction
+  | AccountRestakeAction
+  | AccountAccountCreatedAction
+  | AccountAccountRemovedAction
+  | AccountBatchAction;
+
+export type AccountActivityElement = {
+  from: string;
+  to: string;
+  timestamp: number;
+  action: AccountActivityAction;
+};
+
 export type AccountTransactionsCount = {
   inTransactionsCount: number;
   outTransactionsCount: number;
@@ -234,6 +314,10 @@ export type ProcedureTypes = {
   "account-info": {
     args: [string];
     result: AccountOld | null;
+  };
+  "account-activity": {
+    args: [string, number, number | null];
+    result: AccountActivityElement[];
   };
   "account-transactions-count": {
     args: [string];

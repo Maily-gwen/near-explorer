@@ -329,6 +329,21 @@ export const queryTransactionsList = async (
     .execute();
 };
 
+export const queryTransactionsByHashes = async (hashes: string[]) => {
+  return indexerDatabase
+    .selectFrom("transactions")
+    .select([
+      "transaction_hash as hash",
+      "signer_account_id as signer_id",
+      "receiver_account_id as receiver_id",
+      "included_in_block_hash as block_hash",
+      (eb) => div(eb, "block_timestamp", 1000 * 1000, "block_timestamp_ms"),
+      "index_in_chunk as transaction_index",
+    ])
+    .where("transaction_hash", "in", hashes)
+    .execute();
+};
+
 export const queryAccountTransactionsList = async (
   accountId: string,
   limit: number = 15,
@@ -693,6 +708,46 @@ export const queryAccountInfo = async (accountId: string) => {
   };
 };
 
+export const queryAccountChanges = async (
+  accountId: string,
+  limit: number,
+  endTimestamp?: number
+) => {
+  let selection = indexerDatabase
+    .selectFrom("account_changes")
+    .select([
+      "affected_account_id as affectedAccountId",
+      (eb) =>
+        div(
+          eb,
+          "changed_in_block_timestamp",
+          1000 * 1000,
+          "changedInBlockTimestamp"
+        ),
+      "changed_in_block_hash as changedInBlockHash",
+      "affected_account_nonstaked_balance as affectedAccountNonstakedBalance",
+      "affected_account_staked_balance as affectedAccountStakedBalance",
+      "affected_account_storage_usage as affectedAccountStorageUsage",
+      "index_in_block as indexInBlock",
+      "update_reason as updateReason",
+      "caused_by_transaction_hash as causedByTransactionHash",
+      "caused_by_receipt_id as causedByReceiptId",
+    ])
+    .where("affected_account_id", "=", accountId);
+  if (endTimestamp) {
+    selection = selection.where(
+      "changed_in_block_timestamp",
+      "<",
+      sql`cast(${endTimestamp} as bigint) * 1000 * 1000`
+    );
+  }
+  return selection
+    .orderBy("changed_in_block_timestamp", "desc")
+    .orderBy("index_in_block", "desc")
+    .limit(limit)
+    .execute();
+};
+
 // contracts
 export const queryNewContractsCountAggregatedByDate = async () => {
   return analyticsDatabase
@@ -1036,6 +1091,36 @@ export const queryExecutedReceiptsList = async (blockHash: string) => {
     .orderBy("shard_id")
     .orderBy("execution_outcomes.index_in_chunk")
     .orderBy("index_in_action_receipt")
+    .execute();
+};
+
+export const queryReceiptsByIds = async (ids: string[]) => {
+  return indexerDatabase
+    .selectFrom("action_receipt_actions")
+    .innerJoin("receipts", (jb) =>
+      jb.onRef("receipts.receipt_id", "=", "action_receipt_actions.receipt_id")
+    )
+    .innerJoin("execution_outcomes", (jb) =>
+      jb.onRef(
+        "execution_outcomes.receipt_id",
+        "=",
+        "action_receipt_actions.receipt_id"
+      )
+    )
+    .select([
+      "action_receipt_actions.receipt_id",
+      "originated_from_transaction_hash",
+      "predecessor_account_id as predecessor_id",
+      "receiver_account_id as receiver_id",
+      "status",
+      "gas_burnt",
+      "tokens_burnt",
+      "executed_in_block_timestamp",
+      "action_kind as kind",
+      "args",
+    ])
+    .where("action_receipt_actions.receipt_id", "in", ids)
+    .where("receipt_kind", "=", "ACTION")
     .execute();
 };
 

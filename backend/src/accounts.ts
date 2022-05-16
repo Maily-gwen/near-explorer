@@ -1,6 +1,14 @@
 import { sha256 } from "js-sha256";
 
-import { AccountListInfo, AccountTransactionsCount } from "./types";
+import {
+  AccountActivityAction,
+  AccountActivityElement,
+  AccountListInfo,
+  AccountTransactionsCount,
+  Action,
+  Receipt,
+  TransactionBaseInfo,
+} from "./types";
 import { config } from "./config";
 import {
   queryIndexedAccount,
@@ -10,6 +18,7 @@ import {
   queryIncomeTransactionsCountFromIndexerForLastDay,
   queryOutcomeTransactionsCountFromAnalytics,
   queryOutcomeTransactionsCountFromIndexerForLastDay,
+  queryAccountChanges,
 } from "./db-utils";
 import { callViewMethod, sendJsonRpcQuery } from "./near";
 import { BIMax } from "./utils";
@@ -87,6 +96,14 @@ export const getAccountInfo = async (accountId: string) => {
   };
 };
 
+export const getAccountChanges = async (
+  accountId: string,
+  limit: number,
+  endTimestamp?: number
+): ReturnType<typeof queryAccountChanges> => {
+  return await queryAccountChanges(accountId, limit, endTimestamp);
+};
+
 function generateLockupAccountIdFromAccountId(accountId: string): string {
   // copied from https://github.com/near/near-wallet/blob/f52a3b1a72b901d87ab2c9cee79770d697be2bd9/src/utils/wallet.js#L601
   return (
@@ -153,4 +170,160 @@ export const getAccountDetails = async (accountId: string) => {
     nonStakedBalance: accountInfo.amount.toString(),
     lockupAccountId,
   };
+};
+
+export const getIdsFromAccountChanges = (
+  changes: Awaited<ReturnType<typeof queryAccountChanges>>
+) => {
+  return changes.reduce<{
+    receiptIds: string[];
+    transactionHashes: string[];
+  }>(
+    (acc, change) => {
+      switch (change.updateReason) {
+        case "ACTION_RECEIPT_GAS_REWARD":
+        case "RECEIPT_PROCESSING":
+          acc.receiptIds.push(change.causedByReceiptId!);
+          break;
+        case "TRANSACTION_PROCESSING":
+          acc.transactionHashes.push(change.causedByTransactionHash!);
+          break;
+        case "MIGRATION":
+        case "VALIDATOR_ACCOUNTS_UPDATE":
+          break;
+      }
+      return acc;
+    },
+    {
+      receiptIds: [],
+      transactionHashes: [],
+    }
+  );
+};
+
+const getActionMapping = (
+  actions: Action[],
+  transactionHash: string,
+  isRefund: boolean
+): AccountActivityAction => {
+  if (actions.length === 0) {
+    throw new Error("Unexpected zero-length array of actions");
+  }
+  if (actions.length !== 1) {
+    return {
+      type: "batch",
+      transactionHash,
+      actions: actions.map((action) =>
+        getActionMapping([action], transactionHash, isRefund)
+      ),
+    };
+  }
+  switch (actions[0].kind) {
+    case "AddKey":
+      return {
+        type: "access-key-created",
+        transactionHash,
+      };
+    case "CreateAccount":
+      return {
+        type: "account-created",
+        transactionHash,
+      };
+    case "DeleteAccount":
+      return {
+        type: "account-removed",
+        transactionHash,
+      };
+    case "DeleteKey":
+      return {
+        type: "access-key-removed",
+        transactionHash,
+      };
+    case "DeployContract":
+      return {
+        type: "contract-deployed",
+        transactionHash,
+      };
+    case "FunctionCall":
+      return {
+        type: "call-method",
+        transactionHash,
+        methodName: actions[0].args.method_name,
+      };
+    case "Stake":
+      return {
+        type: "restake",
+        transactionHash,
+      };
+    case "Transfer":
+      return {
+        type: isRefund ? "refund" : "transfer",
+        transactionHash,
+        amount: actions[0].args.deposit,
+      };
+  }
+};
+
+export const getMapAccountChange = <
+  C extends Awaited<ReturnType<typeof queryAccountChanges>>[number]
+>(
+  receiptsResponse: Map<string, Receipt>,
+  transactionsResponse: Map<string, TransactionBaseInfo>
+) => (
+  change: C,
+  index: number,
+  changes: C[]
+): AccountActivityElement | null => {
+  switch (change.updateReason) {
+    case "ACTION_RECEIPT_GAS_REWARD":
+    case "RECEIPT_PROCESSING":
+      const connectedReceipt = receiptsResponse.get(change.causedByReceiptId!)!;
+      return {
+        from: connectedReceipt.signerId,
+        to: connectedReceipt.receiverId,
+        timestamp: connectedReceipt.blockTimestamp,
+        action: getActionMapping(
+          connectedReceipt.actions,
+          connectedReceipt.originatedFromTransactionHash,
+          connectedReceipt.signerId === "system"
+        ),
+      };
+    case "TRANSACTION_PROCESSING": {
+      const connectedTransaction = transactionsResponse.get(
+        change.causedByTransactionHash!
+      )!;
+      return {
+        from: connectedTransaction.signerId,
+        to: connectedTransaction.receiverId,
+        timestamp: connectedTransaction.blockTimestamp,
+        action: getActionMapping(
+          connectedTransaction.actions,
+          connectedTransaction.hash,
+          connectedTransaction.signerId === "system"
+        ),
+      };
+    }
+    case "MIGRATION":
+      return null;
+    case "VALIDATOR_ACCOUNTS_UPDATE":
+      const prevChange = changes[index + 1];
+      if (!prevChange) {
+        return null;
+      }
+      return {
+        from: "system",
+        to: change.affectedAccountId,
+        timestamp: parseInt(change.changedInBlockTimestamp),
+        action: {
+          type: "validator-reward",
+          blockHash: change.changedInBlockHash,
+          amount: (
+            BigInt(change.affectedAccountStakedBalance) -
+            BigInt(prevChange.affectedAccountStakedBalance)
+          ).toString(),
+        },
+      };
+    default:
+      return null;
+  }
 };

@@ -3,6 +3,7 @@ import {
   queryReceiptInTransaction,
   queryIncludedReceiptsList,
   queryExecutedReceiptsList,
+  queryReceiptsByIds,
 } from "./db-utils";
 
 import {
@@ -86,6 +87,17 @@ export const getExecutedReceiptsList = async (
 ): Promise<Receipt[]> => {
   const receiptActions = await queryExecutedReceiptsList(blockHash);
   return groupReceiptActionsIntoReceipts(receiptActions);
+};
+
+export const getReceiptsByIds = async (
+  ids: string[]
+): Promise<Map<string, Receipt>> => {
+  const receiptActions = await queryReceiptsByIds(ids);
+  const receipts = groupReceiptActionsIntoReceipts(receiptActions);
+  return receipts.reduce<Map<string, Receipt>>((acc, receipt) => {
+    acc.set(receipt.receiptId, receipt);
+    return acc;
+  }, new Map());
 };
 
 export const getReceiptsCountInBlock = async (

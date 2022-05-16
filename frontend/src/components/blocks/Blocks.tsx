@@ -35,6 +35,7 @@ const BlocksList = ListHandler<BlockBase, number>({
   },
   fetch: (fetcher, paginationIndexer) =>
     fetcher("blocks-list", [BLOCKS_PER_PAGE, paginationIndexer ?? null]),
+  props: {},
 });
 
 export default BlocksList;

@@ -37,12 +37,13 @@ const LoadButton = styled("button", {
   },
 });
 
-export type StaticConfig<T, I> = {
+export type StaticConfig<T, I, P = {}> = {
   key: string;
-  Component: React.FC<{ items: T[] }>;
+  Component: React.FC<{ items: T[] } & P>;
   paginationIndexer: ReactQuery.GetNextPageParamFunction<T[]>;
   hasUpdateButton?: boolean;
   fetch: (fetcher: Fetcher, indexer: I | undefined) => Promise<T[]>;
+  props: P;
 };
 
 type UpdateBlockHeightProps = {
@@ -63,7 +64,7 @@ const UpdateBlockHeight: React.FC<UpdateBlockHeightProps> = React.memo(
   }
 );
 
-const Wrapper = <T, I>(config: StaticConfig<T, I>): React.FC => {
+const Wrapper = <T, I, P = {}>(config: StaticConfig<T, I, P>): React.FC => {
   return React.memo(() => {
     const { t } = useTranslation();
     const fetcher = useFetcher();
@@ -120,7 +121,7 @@ const Wrapper = <T, I>(config: StaticConfig<T, I>): React.FC => {
           }
           style={{ overflowX: "hidden" }}
         >
-          <config.Component items={allItems} />
+          <config.Component items={allItems} {...config.props} />
         </InfiniteScroll>
       </>
     );

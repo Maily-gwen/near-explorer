@@ -33,6 +33,7 @@ const AccountsList = ListHandler<AccountListInfo, number>({
   },
   fetch: (fetcher, indexer) =>
     fetcher("accounts-list", [ACCOUNTS_PER_PAGE, indexer ?? null]),
+  props: {},
 });
 
 export default AccountsList;

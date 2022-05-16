@@ -1,7 +1,13 @@
 import { exec } from "child_process";
 import { promisify } from "util";
 
-import { Action, KeysOfUnion, ProcedureTypes, RPC } from "./types";
+import {
+  AccountActivityElement,
+  Action,
+  KeysOfUnion,
+  ProcedureTypes,
+  RPC,
+} from "./types";
 
 import * as stats from "./stats";
 import * as receipts from "./receipts";
@@ -272,6 +278,27 @@ export const procedureHandlers: {
       ...accountInfo,
       details: accountDetails,
     };
+  },
+
+  "account-activity": async ([accountId, limit, endTimestamp]) => {
+    const changes = await accounts.getAccountChanges(
+      accountId,
+      limit,
+      endTimestamp || undefined
+    );
+
+    const idsToFetch = accounts.getIdsFromAccountChanges(changes);
+    const [receiptsResponse, transactionsResponse] = await Promise.all([
+      receipts.getReceiptsByIds(idsToFetch.receiptIds),
+      transactions.getTransactionsByHashes(idsToFetch.transactionHashes),
+    ]);
+    const mapAccountChange = accounts.getMapAccountChange(
+      receiptsResponse,
+      transactionsResponse
+    );
+    return changes
+      .map(mapAccountChange)
+      .filter((x): x is AccountActivityElement => Boolean(x));
   },
 
   // blocks
