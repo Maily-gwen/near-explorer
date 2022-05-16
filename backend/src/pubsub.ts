@@ -23,7 +23,7 @@ export type PubSubController = {
 export const initPubSub = (state: GlobalState): PubSubController => {
   const wampNearExplorerUrl = getBackendUrl(config.transport);
   console.log(
-    `WAMP setup: connecting to ${wampNearExplorerUrl} with ticket ${config.transport.secret}`
+    `WAMP stress test setup: connecting to ${wampNearExplorerUrl} with ticket ${config.transport.secret}`
   );
   const wamp = new autobahn.Connection({
     realm: "near-explorer",
